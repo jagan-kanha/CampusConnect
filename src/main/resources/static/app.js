@@ -1,5 +1,6 @@
 const TOKEN_KEY = 'campusconnect.token';
 const EMAIL_KEY = 'campusconnect.email';
+const NAME_KEY = 'campusconnect.name';
 const ROLE_KEY = 'campusconnect.role';
 
 const authScreen = document.querySelector('#auth-screen');
@@ -67,6 +68,7 @@ authForm.addEventListener('submit', async (event) => {
     }
     localStorage.setItem(TOKEN_KEY, result.token);
     localStorage.setItem(EMAIL_KEY, result.email);
+    localStorage.setItem(NAME_KEY, result.name || '');
     localStorage.setItem(ROLE_KEY, result.role);
     await showDashboard();
   } catch (error) {
@@ -92,7 +94,7 @@ async function showDashboard() {
   showApp();
   const email = localStorage.getItem(EMAIL_KEY) || 'Student';
   const isAdmin = localStorage.getItem(ROLE_KEY) === 'ADMIN';
-  const name = email.split('@')[0].replace(/[._-]+/g, ' ');
+  const name = localStorage.getItem(NAME_KEY) || email.split('@')[0].replace(/[._-]+/g, ' ');
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
   document.querySelector('#greeting').textContent = greeting;
@@ -122,6 +124,7 @@ async function showDashboard() {
 function logout(showMessage = true) {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(EMAIL_KEY);
+  localStorage.removeItem(NAME_KEY);
   localStorage.removeItem(ROLE_KEY);
   closeCreateForm();
   showAuth();
