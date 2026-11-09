@@ -6,6 +6,7 @@ import com.campusconnect.dto.RegisterRequest;
 import com.campusconnect.entity.Role;
 import com.campusconnect.entity.User;
 import com.campusconnect.exception.BadRequestException;
+import com.campusconnect.exception.ResourceNotFoundException;
 import com.campusconnect.repository.UserRepository;
 import com.campusconnect.security.JwtService;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -61,7 +62,7 @@ public class AuthService {
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() ->
-                        new RuntimeException("User not found"));
+                        new ResourceNotFoundException("User not found"));
 
         String token = jwtService.generateToken(
                 user.getEmail(),

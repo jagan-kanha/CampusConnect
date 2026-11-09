@@ -275,7 +275,7 @@ After signing in, the UI uses the `role` returned by `/api/auth/login` to show t
 
 The complaint list uses Spring Data's page response for previous/next navigation and page size. Both roles can sort by creation date, update date, or title. Admins can combine status, priority, and category filters; all selected filters are applied together.
 
-If you forget the local admin password, run `LocalAdminPasswordReset.main()` from IntelliJ (`src/main/java/com/campusconnect/tools/LocalAdminPasswordReset.java`). It opens local dialogs to enter the admin email and a new password twice, checks that the account has the `ADMIN` role, then writes a BCrypt hash to that account with a parameterized SQL update. It is a manual local utility, not an HTTP endpoint. Set `DB_PASSWORD` in this utility's run configuration; it reads the database URL and username from `application.properties`.
+If you forget an admin password, run `LocalAdminPasswordReset.main()` from IntelliJ (`src/main/java/com/campusconnect/tools/LocalAdminPasswordReset.java`). It opens local dialogs to enter the admin email and a new password twice, checks that the account has the `ADMIN` role, then writes a BCrypt hash to that account with a parameterized SQL update. It is a manual local utility, not an HTTP endpoint. Set `DB_PASSWORD` in the run configuration. It uses `DB_URL` and `DB_USERNAME` when set, otherwise it connects to local MySQL at `jdbc:mysql://localhost:3306/campusconnect` as `root`.
 
 ### Learning path in this project
 

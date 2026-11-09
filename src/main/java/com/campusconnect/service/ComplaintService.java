@@ -92,7 +92,7 @@ public class ComplaintService {
 
         Complaint complaint = complaintRepository.findById(complaintId)
                 .orElseThrow(() ->
-                        new RuntimeException("Complaint not found"));
+                        new ResourceNotFoundException("Complaint not found"));
 
         complaint.setStatus(status);
 

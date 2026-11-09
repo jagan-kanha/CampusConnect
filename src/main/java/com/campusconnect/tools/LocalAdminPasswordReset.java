@@ -4,12 +4,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.Properties;
 import java.util.Arrays;
 
 /**
@@ -73,17 +71,14 @@ public final class LocalAdminPasswordReset {
                 throw new IllegalStateException("DB_PASSWORD is not set for this run configuration.");
             }
 
-            Properties properties = new Properties();
-            try (InputStream input = LocalAdminPasswordReset.class
-                    .getResourceAsStream("/application.properties")) {
-                if (input == null) {
-                    throw new IllegalStateException("Could not read application.properties.");
-                }
-                properties.load(input);
+            String databaseUrl = System.getenv("DB_URL");
+            if (databaseUrl == null || databaseUrl.isBlank()) {
+                databaseUrl = "jdbc:mysql://localhost:3306/campusconnect";
             }
-
-            String databaseUrl = properties.getProperty("spring.datasource.url");
-            String databaseUser = properties.getProperty("spring.datasource.username");
+            String databaseUser = System.getenv("DB_USERNAME");
+            if (databaseUser == null || databaseUser.isBlank()) {
+                databaseUser = "root";
+            }
             String encodedPassword = new BCryptPasswordEncoder().encode(new String(password));
 
             try (Connection connection = DriverManager.getConnection(databaseUrl, databaseUser, databasePassword);

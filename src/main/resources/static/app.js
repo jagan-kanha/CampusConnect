@@ -93,6 +93,9 @@ async function showDashboard() {
   const email = localStorage.getItem(EMAIL_KEY) || 'Student';
   const isAdmin = localStorage.getItem(ROLE_KEY) === 'ADMIN';
   const name = email.split('@')[0].replace(/[._-]+/g, ' ');
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  document.querySelector('#greeting').textContent = greeting;
   document.querySelector('#profile-name').textContent = name;
   document.querySelector('#profile-role').textContent = isAdmin ? 'Administrator' : 'Student account';
   document.querySelector('#welcome-name').textContent = name.split(' ')[0];

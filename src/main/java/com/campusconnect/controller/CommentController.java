@@ -42,10 +42,11 @@ public class CommentController {
 
     @GetMapping("/{complaintId}/comments")
     public ResponseEntity<List<CommentResponse>> getComments(
-            @PathVariable Long complaintId) {
+            @PathVariable Long complaintId,
+            Authentication authentication) {
 
         List<Comment> comments =
-                commentService.getComments(complaintId);
+                commentService.getComments(complaintId, authentication.getName());
 
         return ResponseEntity.ok(
                 comments.stream()
