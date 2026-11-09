@@ -14,4 +14,5 @@ public class CommentResponse {
     private LocalDateTime createdAt;
     private Long userId;
     private Long complaintId;
+    private String userRole;
 }

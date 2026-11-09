@@ -1,19 +1,20 @@
 package com.campusconnect.service;
 
 import com.campusconnect.dto.ComplaintRequest;
+import com.campusconnect.entity.ComplaintCategory;
+import com.campusconnect.entity.ComplaintPriority;
 import com.campusconnect.entity.Complaint;
 import com.campusconnect.entity.ComplaintStatus;
 import com.campusconnect.entity.User;
 import com.campusconnect.repository.ComplaintRepository;
 import com.campusconnect.repository.UserRepository;
 import org.springframework.stereotype.Service;
-import com.campusconnect.entity.ComplaintCategory;
-import com.campusconnect.entity.ComplaintPriority;
-import com.campusconnect.entity.ComplaintStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import com.campusconnect.exception.ResourceNotFoundException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -68,28 +69,21 @@ public class ComplaintService {
             ComplaintCategory category,
             Pageable pageable) {
 
+        List<Specification<Complaint>> filters = new ArrayList<>();
         if (status != null) {
-            return complaintRepository.findByStatus(
-                    status,
-                    pageable
-            );
+            filters.add((root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(root.get("status"), status));
         }
-
         if (priority != null) {
-            return complaintRepository.findByPriority(
-                    priority,
-                    pageable
-            );
+            filters.add((root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(root.get("priority"), priority));
         }
-
         if (category != null) {
-            return complaintRepository.findByCategory(
-                    category,
-                    pageable
-            );
+            filters.add((root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(root.get("category"), category));
         }
 
-        return complaintRepository.findAll(pageable);
+        return complaintRepository.findAll(Specification.allOf(filters), pageable);
     }
 
     public Complaint updateStatus(

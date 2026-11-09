@@ -4,9 +4,10 @@ import com.campusconnect.entity.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 public interface ComplaintRepository
-        extends JpaRepository<Complaint, Long> {
+        extends JpaRepository<Complaint, Long>, JpaSpecificationExecutor<Complaint> {
 
     Page<Complaint> findByUserId(Long userId, Pageable pageable);
 

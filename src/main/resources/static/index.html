@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f6f2">
+  <title>CampusConnect — Better campus, together</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#home" aria-label="CampusConnect home"><span class="brand-mark">c</span><span>campus<span class="brand-light">connect</span></span></a>
+      <div class="campus-label">YOUR CAMPUS</div>
+      <nav class="nav-list" aria-label="Main navigation">
+        <a class="nav-link active" href="#home"><span class="nav-icon">⌂</span> Overview</a>
+        <a class="nav-link" href="#my-complaints"><span class="nav-icon">▤</span> <span id="nav-label">My complaints</span> <span class="nav-count" id="nav-count">0</span></a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="help-card"><div class="help-spark">✳</div><strong>A better campus<br>starts with a voice.</strong><p>Every report helps us make things better for everyone.</p></div>
+        <div class="profile-row"><div class="avatar" id="avatar">?</div><div class="profile-copy"><strong id="profile-name">Guest</strong><span id="profile-role">Not signed in</span></div><button class="icon-button logout-button" id="logout-button" title="Log out" aria-label="Log out">↗</button></div>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar"><div class="breadcrumbs"><span>Campus</span><span class="crumb-separator">/</span><strong id="breadcrumb-current">Overview</strong></div><div class="topbar-right"><span class="today" id="today-date"></span><span class="live-dot"></span><span class="campus-status">Campus portal</span></div></header>
+      <section class="page-content">
+        <section id="auth-screen" class="auth-layout" aria-label="Sign in to CampusConnect">
+          <div class="auth-story"><div class="eyebrow"><span class="eyebrow-dot"></span> YOUR CAMPUS, CONNECTED</div><h1>Small changes.<br><span>Better days.</span></h1><p>A leaky tap, a dark hallway, a slow connection. Tell us what needs attention and we’ll help get it moving.</p><div class="story-bottom"><div class="story-avatars"><span>R</span><span>A</span><span>M</span><span>+</span></div><span>Students making campus better, together</span></div><div class="auth-decoration"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+          <div class="auth-card"><div class="auth-heading"><div class="mobile-brand"><span class="brand-mark">c</span> campusconnect</div><span class="section-kicker">WELCOME TO CAMPUSCONNECT</span><h2 id="auth-title">Good to see you.</h2><p id="auth-subtitle">Sign in with your campus account to continue.</p></div>
+            <div class="auth-tabs" role="tablist"><button class="auth-tab selected" id="login-tab" type="button" role="tab" aria-selected="true">Sign in</button><button class="auth-tab" id="register-tab" type="button" role="tab" aria-selected="false">Create account</button></div>
+            <form id="auth-form" class="form-stack"><label id="name-field" class="field hidden">Your name<input id="name" name="name" type="text" autocomplete="name" placeholder="e.g. Aanya Sharma"></label><label class="field">Campus email<input id="email" name="email" type="email" autocomplete="email" placeholder="you@university.edu" required></label><label class="field">Password<div class="password-wrap"><input id="password" name="password" type="password" autocomplete="current-password" placeholder="At least 6 characters" minlength="6" required><span class="password-note">6+ characters</span></div></label><button class="button button-primary auth-submit" id="auth-submit" type="submit">Sign in <span>→</span></button></form>
+            <p id="auth-message" class="form-message" role="status" aria-live="polite"></p><p class="auth-footnote"><span>⌑</span> Your account is protected with secure sign-in.</p>
+          </div>
+        </section>
+
+        <section id="dashboard" class="dashboard hidden">
+          <div class="welcome-row"><div><div class="eyebrow"><span class="eyebrow-dot"></span> <span id="portal-label">STUDENT PORTAL</span></div><h1>Good morning, <span id="welcome-name">there</span><span class="wave">✳</span></h1><p class="welcome-subtitle" id="welcome-subtitle">Here’s what’s happening around your campus.</p></div><button class="button button-primary" id="new-complaint-button"><span class="plus">＋</span> New complaint</button></div>
+          <div class="stats-grid"><article class="stat-card"><div class="stat-top"><span class="stat-label" id="total-label">TOTAL REPORTED</span><span class="stat-icon icon-lilac">▤</span></div><div class="stat-value" id="total-count">—</div><div class="stat-caption" id="total-caption">Your voice on campus</div><div class="stat-decoration decor-lilac">↗</div></article><article class="stat-card"><div class="stat-top"><span class="stat-label">IN PROGRESS</span><span class="stat-icon icon-amber">◷</span></div><div class="stat-value" id="progress-count">—</div><div class="stat-caption">On this page</div><div class="stat-decoration decor-amber">···</div></article><article class="stat-card"><div class="stat-top"><span class="stat-label">RESOLVED</span><span class="stat-icon icon-mint">✓</span></div><div class="stat-value" id="resolved-count">—</div><div class="stat-caption">On this page</div><div class="stat-decoration decor-mint">✳</div></article></div>
+          <section class="content-card" id="my-complaints">
+            <div class="card-heading"><div><div class="section-kicker" id="list-kicker">YOUR CAMPUS VOICE</div><h2><span id="list-title">My complaints</span> <span class="heading-count" id="heading-count">0</span></h2></div><button class="text-button" id="refresh-button" title="Refresh complaints">↻ <span>Refresh</span></button></div>
+            <div class="complaint-controls">
+              <div class="admin-filters hidden" id="admin-filters">
+                <label class="field">Status<select id="filter-status"><option value="">All statuses</option><option value="OPEN">Open</option><option value="IN_PROGRESS">In progress</option><option value="RESOLVED">Resolved</option><option value="REJECTED">Rejected</option></select></label>
+                <label class="field">Priority<select id="filter-priority"><option value="">All priorities</option><option value="LOW">Low</option><option value="MEDIUM">Medium</option><option value="HIGH">High</option><option value="CRITICAL">Critical</option></select></label>
+                <label class="field">Category<select id="filter-category"><option value="">All categories</option><option value="HOSTEL">Hostel</option><option value="MESS">Mess</option><option value="ELECTRICITY">Electricity</option><option value="INTERNET">Internet</option><option value="ACADEMIC">Academic</option><option value="OTHER">Other</option></select></label>
+                <div class="filter-actions"><button class="button button-primary" id="apply-filters" type="button">Apply filters</button><button class="text-button" id="clear-filters" type="button">Clear</button></div>
+              </div>
+              <div class="list-options"><label class="field">Sort by<select id="sort-select"><option value="createdAt,desc">Newest first</option><option value="createdAt,asc">Oldest first</option><option value="updatedAt,desc">Recently updated</option><option value="title,asc">Title A–Z</option></select></label><label class="field">Per page<select id="page-size"><option>5</option><option selected>10</option><option>20</option><option>50</option></select></label></div>
+            </div>
+            <div id="complaints-list" class="complaint-list"><div class="empty-state"><span class="empty-icon">▤</span><strong>Loading your campus updates…</strong></div></div>
+            <div class="list-footer" id="list-footer"><span id="list-summary"></span><div class="pagination-controls"><button class="button button-quiet" id="previous-page" type="button" disabled>← Previous</button><span id="page-indicator">Page 1 of 1</span><button class="button button-quiet" id="next-page" type="button" disabled>Next →</button></div></div>
+          </section>
+          <section class="content-card create-card hidden" id="create-card"><div class="card-heading"><div><div class="section-kicker">LET US KNOW</div><h2>Raise a complaint</h2></div><button class="icon-button close-create" id="close-create" aria-label="Close form">×</button></div><form id="complaint-form" class="complaint-form"><label class="field">What needs attention?<input id="complaint-title" name="title" maxlength="160" placeholder="e.g. Water leak in Block C restroom" required></label><div class="form-row"><label class="field">Category<select id="category" required><option value="" disabled selected>Select a category</option><option>HOSTEL</option><option>MESS</option><option>ELECTRICITY</option><option>INTERNET</option><option>ACADEMIC</option><option>OTHER</option></select></label><label class="field">Priority<select id="priority" required><option value="" disabled selected>Select priority</option><option>LOW</option><option>MEDIUM</option><option>HIGH</option><option>CRITICAL</option></select></label></div><label class="field">Tell us a little more<textarea id="description" name="description" rows="4" placeholder="Where is it? When did you notice it? Any details help us resolve this sooner." required></textarea></label><p id="complaint-message" class="form-message" role="status" aria-live="polite"></p><div class="form-actions"><button class="button button-quiet" type="button" id="cancel-create">Cancel</button><button class="button button-primary" id="complaint-submit" type="submit">Submit complaint <span>→</span></button></div></form></section>
+          <footer class="page-footer"><span>Made for a campus that listens <span class="footer-heart">♥</span></span><span>CampusConnect <span id="footer-year"></span></span></footer>
+        </section>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

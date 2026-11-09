@@ -18,6 +18,7 @@ CampusConnect is a role-based campus complaint management system built using Jav
 - Centralized exception handling
 - Input validation
 - DTO-based API responses to prevent sensitive data exposure
+- Student web interface served directly by Spring Boot
 
 ## Tech Stack
 
@@ -257,6 +258,30 @@ On Linux/macOS:
 The application runs on:
 
 http://localhost:8080
+
+### CampusConnect UI
+
+The frontend uses plain HTML, CSS, and JavaScript; Spring Boot serves it from `src/main/resources/static`. There is no separate frontend build step. Open `http://localhost:8080` after the backend starts, then create a student account or sign in. The first UI includes registration, login, a student overview, complaint creation, and the student's complaint list.
+
+The browser calls the existing `/api/auth/*` and `/api/complaints*` endpoints with `fetch`. After login, it sends the JWT as an `Authorization: Bearer ...` header for protected requests. Static UI files and the authentication endpoints are public in `SecurityConfig`; protected API requests still pass through the JWT filter.
+
+After signing in, the UI uses the `role` returned by `/api/auth/login` to show the student dashboard or the admin complaint queue. Students and admins can view the conversation; both can add comments, and admins can change complaint status. Admin accounts must have the `ADMIN` role in the `users` table; public registration always creates `STUDENT` accounts. Passwords are BCrypt hashes, so sign in with the original password, not the stored hash.
+
+The complaint list uses Spring Data's page response for previous/next navigation and page size. Both roles can sort by creation date, update date, or title. Admins can combine status, priority, and category filters; all selected filters are applied together.
+
+If you forget the local admin password, run `LocalAdminPasswordReset.main()` from IntelliJ (`src/main/java/com/campusconnect/tools/LocalAdminPasswordReset.java`). It opens local dialogs to enter the admin email and a new password twice, checks that the account has the `ADMIN` role, then writes a BCrypt hash to that account with a parameterized SQL update. It is a manual local utility, not an HTTP endpoint. Set `DB_PASSWORD` in this utility's run configuration; it reads the database URL and username from `application.properties`.
+
+### Learning path in this project
+
+As we add UI features, we will follow the request through the Spring Boot layers: browser `fetch` → controller → service → repository → database, then back through a DTO response. The first UI refreshes these concepts:
+
+- `@RestController`, `@RequestMapping`, and `@PostMapping` / `@GetMapping`
+- `@RequestBody` and Bean Validation with `@Valid`
+- constructor injection and the controller-service-repository separation
+- Spring Security's filter chain, JWT authentication, and authenticated user context
+- DTOs, HTTP status codes, and centralized exception responses
+
+We can then extend the project feature by feature and introduce system design choices alongside the real requirements they solve.
 API Testing
 
 The APIs can be tested using Postman.

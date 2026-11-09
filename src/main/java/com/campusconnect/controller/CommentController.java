@@ -61,7 +61,8 @@ public class CommentController {
                 comment.getMessage(),
                 comment.getCreatedAt(),
                 comment.getUser().getId(),
-                comment.getComplaint().getId()
+                comment.getComplaint().getId(),
+                comment.getUser().getRole().name()
         );
     }
 }
