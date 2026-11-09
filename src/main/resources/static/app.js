@@ -28,7 +28,19 @@ async function api(path, options = {}) {
   const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
   const token = localStorage.getItem(TOKEN_KEY);
   if (token) headers.Authorization = `Bearer ${token}`;
-  const response = await fetch(path, { ...options, headers });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
+  let response;
+  try {
+    response = await fetch(path, { ...options, headers, signal: options.signal || controller.signal });
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      throw new Error('The server took too long to respond. Please try again; if verifying, try signing in before requesting another code.');
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
   const body = response.status === 204 ? null : await response.json().catch(() => null);
   if (!response.ok) {
     if (response.status === 401) logout(false);
@@ -43,7 +55,12 @@ function setAuthMode(mode) {
   authMode = mode;
   const registering = mode === 'register';
   populateHostels(document.querySelector('#hostel'), document.querySelector('#gender').value);
-  document.querySelector('#email').pattern = registering ? '[A-Za-z0-9._%+-]+@nitrkl\\.ac\\.in' : '';
+  const email = document.querySelector('#email');
+  if (registering) {
+    email.setAttribute('pattern', '[A-Za-z0-9._%+-]+@nitrkl\\.ac\\.in');
+  } else {
+    email.removeAttribute('pattern');
+  }
   syncRegistrationEmailRule();
   document.querySelector('#registration-otp-panel').classList.add('hidden');
   document.querySelector('#forgot-password-panel').classList.add('hidden');
@@ -129,6 +146,17 @@ function describeAcademicRoll(rollNumber) {
   return `${year}${suffix} Year · ${departments[match[2].toUpperCase()] || match[2].toUpperCase()}`;
 }
 
+function renderProfileSummary(profile) {
+  document.querySelector('#summary-profile-name').textContent = profile.name || '—';
+  document.querySelector('#summary-profile-email').textContent = profile.email || '—';
+  document.querySelector('#summary-profile-roll').textContent = profile.rollNumber || '—';
+  document.querySelector('#summary-profile-dob').textContent = profile.dateOfBirth || '—';
+  document.querySelector('#summary-profile-mobile').textContent = profile.mobileNumber || '—';
+  document.querySelector('#summary-profile-gender').textContent = readable(profile.gender) || '—';
+  document.querySelector('#summary-profile-hostel').textContent = profile.hostel || '—';
+  document.querySelector('#student-academic-tag').textContent = describeAcademicRoll(profile.rollNumber);
+}
+
 authForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   const submit = document.querySelector('#auth-submit');
@@ -148,6 +176,8 @@ authForm.addEventListener('submit', async (event) => {
     if (authMode === 'register') {
       pendingRegistrationEmail = payload.email;
       document.querySelector('#registration-otp-email').textContent = pendingRegistrationEmail;
+      setMessage(authMessage, '');
+      setMessage(document.querySelector('#registration-otp-message'), '');
       authForm.classList.add('hidden');
       document.querySelector('#auth-tabs').classList.add('hidden');
       document.querySelector('#forgot-password-link').classList.add('hidden');
@@ -160,6 +190,7 @@ authForm.addEventListener('submit', async (event) => {
     localStorage.setItem(EMAIL_KEY, result.email);
     localStorage.setItem(NAME_KEY, result.name || '');
     localStorage.setItem(ROLE_KEY, result.role);
+    location.hash = '#home';
     await showDashboard();
   } catch (error) {
     setMessage(authMessage, authMode === 'login' && error.status === 401
@@ -178,6 +209,7 @@ document.querySelector('#registration-otp-form').addEventListener('submit', asyn
   try {
     await api('/api/auth/register/verify-otp', { method: 'POST', body: JSON.stringify({ email: pendingRegistrationEmail, code: document.querySelector('#registration-otp-code').value.trim() }) });
     document.querySelector('#registration-otp-panel').classList.add('hidden');
+    setMessage(document.querySelector('#registration-otp-message'), '');
     setAuthMode('login');
     document.querySelector('#email').value = pendingRegistrationEmail;
     setMessage(authMessage, 'Email verified. Sign in with your new account.', true);
@@ -281,6 +313,7 @@ async function showDashboard() {
   document.querySelector('#list-kicker').textContent = isAdmin ? 'CAMPUS INBOX' : 'YOUR CAMPUS VOICE';
   document.querySelector('#list-title').textContent = isAdmin ? 'All complaints' : 'My complaints';
   document.querySelector('#new-complaint-button').classList.toggle('hidden', isAdmin);
+  document.querySelector('#campus-board-link').classList.toggle('hidden', isAdmin);
   document.querySelector('#student-profile-card').classList.toggle('hidden', isAdmin);
   document.querySelector('#create-card').classList.add('hidden');
   document.querySelector('#total-label').textContent = isAdmin ? 'TOTAL COMPLAINTS' : 'TOTAL REPORTED';
@@ -294,18 +327,32 @@ async function showDashboard() {
   complaintPage = 0;
   await loadComplaints();
   if (!isAdmin) await loadProfile();
-  updateDashboardRoute();
+  updateDashboardRoute(false);
 }
 
-function updateDashboardRoute() {
+function updateDashboardRoute(reloadComplaints = true) {
+  const route = location.hash;
   const complaintsPage = location.hash === '#my-complaints';
+  const campusBoardPage = route === '#campus-board' && localStorage.getItem(ROLE_KEY) !== 'ADMIN';
   if (!complaintsPage && document.querySelector('#create-card').dataset.open === 'true') closeCreateForm();
-  document.querySelector('#overview-panel').classList.toggle('hidden', complaintsPage);
-  document.querySelector('#my-complaints').classList.toggle('hidden', !complaintsPage);
+  document.querySelector('#overview-panel').classList.toggle('hidden', complaintsPage || campusBoardPage);
+  document.querySelector('#my-complaints').classList.toggle('hidden', !complaintsPage && !campusBoardPage);
   document.querySelector('#create-card').classList.toggle('hidden', !complaintsPage || document.querySelector('#create-card').dataset.open !== 'true');
-  document.querySelector('#overview-link').classList.toggle('active', !complaintsPage);
+  document.querySelector('#overview-link').classList.toggle('active', !complaintsPage && !campusBoardPage);
   document.querySelector('#complaints-link').classList.toggle('active', complaintsPage);
-  document.querySelector('#breadcrumb-current').textContent = complaintsPage ? document.querySelector('#list-title').textContent : 'Overview';
+  document.querySelector('#campus-board-link').classList.toggle('active', campusBoardPage);
+  if (campusBoardPage) {
+    document.querySelector('#list-title').textContent = 'Campus board';
+    document.querySelector('#list-kicker').textContent = 'ACTIVE CAMPUS ISSUES';
+  } else {
+    const isAdmin = localStorage.getItem(ROLE_KEY) === 'ADMIN';
+    document.querySelector('#list-title').textContent = isAdmin ? 'All complaints' : 'My complaints';
+    document.querySelector('#list-kicker').textContent = isAdmin ? 'CAMPUS INBOX' : 'YOUR CAMPUS VOICE';
+  }
+  document.querySelector('#breadcrumb-current').textContent = campusBoardPage
+    ? 'Campus board'
+    : complaintsPage ? document.querySelector('#list-title').textContent : 'Overview';
+  if (reloadComplaints) loadComplaints();
 }
 
 async function loadProfile() {
@@ -322,7 +369,7 @@ async function loadProfile() {
     document.querySelector('#profile-mobile').value = profile.mobileNumber || '';
     document.querySelector('#profile-gender').value = profile.gender || '';
     populateHostels(document.querySelector('#profile-hostel'), profile.gender, profile.hostel);
-    document.querySelector('#student-academic-tag').textContent = describeAcademicRoll(profile.rollNumber);
+    renderProfileSummary(profile);
     document.querySelector('#profile-total-complaints').textContent = profile.totalComplaints ?? 0;
   } catch (error) {
     setMessage(document.querySelector('#profile-message'), error.message);
@@ -354,13 +401,20 @@ function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
 }
 
-function renderComplaint(item, isAdmin) {
+function renderComplaint(item, isAdmin, isCampusBoard = false) {
   const complaintId = Number(item.id);
+  const priority = String(item.priority || '').toLowerCase();
   const conversation = `<div class="conversation"><button class="text-button conversation-toggle" type="button" data-id="${complaintId}">＋ View conversation</button><div class="conversation-box hidden" id="conversation-${complaintId}"></div></div>`;
   const adminActions = `<div class="admin-actions"><form class="status-form" data-id="${complaintId}"><label class="field">Update status<select name="status"><option value="OPEN" ${item.status === 'OPEN' ? 'selected' : ''}>Open</option><option value="IN_PROGRESS" ${item.status === 'IN_PROGRESS' ? 'selected' : ''}>In progress</option><option value="RESOLVED" ${item.status === 'RESOLVED' ? 'selected' : ''}>Resolved</option><option value="REJECTED" ${item.status === 'REJECTED' ? 'selected' : ''}>Rejected</option></select></label><button class="button button-quiet" type="submit">Save status</button></form>${conversation}<form class="comment-form" data-id="${complaintId}"><label class="field">Send a response<textarea name="message" rows="2" maxlength="1000" placeholder="Write a helpful update for the student…" required></textarea></label><button class="button button-primary" type="submit">Post response <span>→</span></button></form><p class="form-message admin-message" role="status" aria-live="polite"></p></div>`;
   const studentConversation = `<div class="student-conversation">${conversation}</div>`;
   const studentIdentity = isAdmin ? `<span class="meta-pill">${escapeHtml(item.studentName || 'Student')} · ${escapeHtml(item.studentEmail || `ID ${item.userId}`)}</span>` : '';
-  return `<article class="complaint-row"><div class="complaint-main"><div class="complaint-title">${escapeHtml(item.title)}</div><div class="complaint-description">${escapeHtml(item.description)}</div><div class="complaint-meta"><span class="meta-pill">${escapeHtml(readable(item.category))}</span><span class="meta-pill">${escapeHtml(readable(item.priority))} priority</span><span class="status-pill status-${escapeHtml(String(item.status).toLowerCase())}">${escapeHtml(readable(item.status))}</span>${studentIdentity}</div></div><time class="complaint-date">${escapeHtml(formatDate(item.createdAt))}</time>${isAdmin ? adminActions : studentConversation}</article>`;
+  const supportSummary = `<span class="meta-pill support-count-pill">${Number(item.supportCount || 0)} ${Number(item.supportCount || 0) === 1 ? 'supporter' : 'supporters'}</span>`;
+  const supportAction = isCampusBoard
+    ? item.ownComplaint
+      ? '<span class="own-complaint-note">Your complaint</span>'
+      : `<button class="support-toggle ${item.supportedByMe ? 'is-supporting' : ''}" type="button" data-id="${complaintId}" aria-pressed="${Boolean(item.supportedByMe)}">${item.supportedByMe ? '✓ Supporting' : '＋ I have this too'} <span>${Number(item.supportCount || 0)}</span></button><p class="form-message support-message" role="status" aria-live="polite"></p>`
+    : '';
+  return `<article class="complaint-row"><div class="complaint-main"><div class="complaint-title">${escapeHtml(item.title)}</div><div class="complaint-description">${escapeHtml(item.description)}</div><div class="complaint-meta"><span class="meta-pill">${escapeHtml(readable(item.category))}</span><span class="meta-pill priority-pill priority-${escapeHtml(priority)}">${escapeHtml(readable(item.priority))} priority</span><span class="status-pill status-${escapeHtml(String(item.status).toLowerCase())}">${escapeHtml(readable(item.status))}</span>${supportSummary}${studentIdentity}</div>${supportAction}</div><time class="complaint-date">${escapeHtml(formatDate(item.createdAt))}</time>${isAdmin ? adminActions : studentConversation}</article>`;
 }
 
 function renderConversation(comments, complaintId, isAdmin) {
@@ -392,6 +446,7 @@ async function loadComplaints() {
   list.innerHTML = '<div class="empty-state"><span class="empty-icon">◌</span><strong>Loading your campus updates…</strong></div>';
   try {
     const isAdmin = localStorage.getItem(ROLE_KEY) === 'ADMIN';
+    const isCampusBoard = !isAdmin && location.hash === '#campus-board';
     const parameters = new URLSearchParams({
       page: String(complaintPage),
       size: String(complaintPageSize),
@@ -402,7 +457,7 @@ async function loadComplaints() {
         if (value) parameters.set(key, value);
       }
     }
-    const endpoint = isAdmin ? '/api/admin/complaints' : '/api/complaints/my';
+    const endpoint = isAdmin ? '/api/admin/complaints' : isCampusBoard ? '/api/complaints/campus' : '/api/complaints/my';
     const page = await api(`${endpoint}?${parameters.toString()}`);
     if (page.totalPages > 0 && complaintPage >= page.totalPages) {
       complaintPage = page.totalPages - 1;
@@ -414,6 +469,7 @@ async function loadComplaints() {
     document.querySelector('#progress-count').textContent = complaints.filter((item) => item.status === 'IN_PROGRESS').length;
     document.querySelector('#resolved-count').textContent = complaints.filter((item) => item.status === 'RESOLVED').length;
     document.querySelector('#nav-count').textContent = page.totalElements ?? complaints.length;
+    if (isCampusBoard) document.querySelector('#campus-board-count').textContent = page.totalElements ?? complaints.length;
     document.querySelector('#heading-count').textContent = page.totalElements ?? complaints.length;
     document.querySelector('#total-caption').textContent = isAdmin
       ? (Object.values(complaintFilters).some(Boolean) ? 'Matching filters' : 'Across your campus')
@@ -427,13 +483,15 @@ async function loadComplaints() {
       ? 'No complaints'
       : `Showing ${firstItem}–${lastItem} of ${page.totalElements}`;
     if (!complaints.length) {
-      const noResults = isAdmin && Object.values(complaintFilters).some(Boolean)
+      const noResults = isCampusBoard
+        ? 'No active campus complaints right now.'
+        : isAdmin && Object.values(complaintFilters).some(Boolean)
         ? 'No complaints match these filters.'
         : 'No complaints yet. Your campus could use your voice.';
       list.innerHTML = `<div class="empty-state"><span class="empty-icon">▤</span><strong>${noResults}</strong></div>`;
       return;
     }
-    list.innerHTML = complaints.map((item) => renderComplaint(item, isAdmin)).join('');
+    list.innerHTML = complaints.map((item) => renderComplaint(item, isAdmin, isCampusBoard)).join('');
   } catch (error) {
     list.innerHTML = `<div class="empty-state"><span class="empty-icon">!</span><strong>${escapeHtml(error.message)}</strong></div>`;
     if (error.message.includes('Failed to fetch')) list.innerHTML = '<div class="empty-state"><span class="empty-icon">!</span><strong>Couldn’t reach the server. Start Spring Boot and refresh.</strong></div>';
@@ -476,13 +534,31 @@ document.querySelector('#profile-form').addEventListener('submit', async (event)
     document.querySelector('#profile-name').textContent = profile.name;
     document.querySelector('#welcome-name').textContent = profile.name.split(' ')[0];
     document.querySelector('#avatar').textContent = profile.name.trim().charAt(0).toUpperCase() || 'S';
-    document.querySelector('#student-academic-tag').textContent = describeAcademicRoll(profile.rollNumber);
+    renderProfileSummary(profile);
+    document.querySelector('#profile-form').classList.add('hidden');
+    document.querySelector('#profile-summary').classList.remove('hidden');
+    document.querySelector('#edit-profile-button').classList.remove('hidden');
     setMessage(document.querySelector('#profile-message'), 'Profile saved.', true);
   } catch (error) {
     setMessage(document.querySelector('#profile-message'), error.message);
   } finally {
     button.disabled = false;
   }
+});
+
+document.querySelector('#edit-profile-button').addEventListener('click', () => {
+  document.querySelector('#profile-summary').classList.add('hidden');
+  document.querySelector('#profile-form').classList.remove('hidden');
+  document.querySelector('#edit-profile-button').classList.add('hidden');
+  setMessage(document.querySelector('#profile-message'), '');
+});
+
+document.querySelector('#cancel-profile-edit').addEventListener('click', async () => {
+  document.querySelector('#profile-form').classList.add('hidden');
+  document.querySelector('#profile-summary').classList.remove('hidden');
+  document.querySelector('#edit-profile-button').classList.remove('hidden');
+  setMessage(document.querySelector('#profile-message'), '');
+  await loadProfile();
 });
 
 window.addEventListener('hashchange', () => {
@@ -584,6 +660,29 @@ document.querySelector('#complaints-list').addEventListener('submit', async (eve
 });
 
 document.querySelector('#complaints-list').addEventListener('click', async (event) => {
+  const supportButton = event.target.closest('.support-toggle');
+  if (supportButton) {
+    const complaintId = Number(supportButton.dataset.id);
+    const wasSupporting = supportButton.getAttribute('aria-pressed') === 'true';
+    const message = supportButton.closest('.complaint-main').querySelector('.support-message');
+    supportButton.disabled = true;
+    setMessage(message, 'Updating support…');
+    try {
+      const result = await api(`/api/complaints/${complaintId}/support`, {
+        method: wasSupporting ? 'DELETE' : 'POST',
+      });
+      supportButton.classList.toggle('is-supporting', result.supportedByMe);
+      supportButton.setAttribute('aria-pressed', String(result.supportedByMe));
+      supportButton.innerHTML = `${result.supportedByMe ? '✓ Supporting' : '＋ I have this too'} <span>${result.supportCount}</span>`;
+      supportButton.closest('.complaint-row').querySelector('.support-count-pill').textContent = `${result.supportCount} ${result.supportCount === 1 ? 'supporter' : 'supporters'}`;
+      setMessage(message, '');
+    } catch (error) {
+      setMessage(message, error.message);
+    } finally {
+      supportButton.disabled = false;
+    }
+    return;
+  }
   const button = event.target.closest('.conversation-toggle');
   if (!button) return;
   const box = document.querySelector(`#conversation-${Number(button.dataset.id)}`);

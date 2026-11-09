@@ -23,4 +23,5 @@ public class ComplaintResponse {
     private Long userId;
     private String studentName;
     private String studentEmail;
+    private long supportCount;
 }

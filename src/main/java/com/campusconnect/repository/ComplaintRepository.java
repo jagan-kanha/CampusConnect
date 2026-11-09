@@ -11,6 +11,8 @@ public interface ComplaintRepository
 
     Page<Complaint> findByUserId(Long userId, Pageable pageable);
 
+    Page<Complaint> findByStatusIn(java.util.Collection<ComplaintStatus> statuses, Pageable pageable);
+
     long countByUserId(Long userId);
 
     Page<Complaint> findByStatus(

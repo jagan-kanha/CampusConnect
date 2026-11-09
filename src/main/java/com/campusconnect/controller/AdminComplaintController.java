@@ -83,7 +83,8 @@ public class AdminComplaintController {
                 complaint.getUpdatedAt(),
                 complaint.getUser().getId(),
                 complaint.getUser().getName(),
-                complaint.getUser().getEmail()
+                complaint.getUser().getEmail(),
+                complaintService.getSupportCount(complaint.getId())
         );
     }
 }

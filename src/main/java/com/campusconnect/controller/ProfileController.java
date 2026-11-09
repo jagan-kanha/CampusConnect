@@ -39,9 +39,14 @@ public class ProfileController {
         if (!HostelEligibility.isValid(request.getGender(), request.getHostel())) {
             throw new BadRequestException("Choose a hostel for the selected gender");
         }
+        String requestedRollNumber = clean(request.getRollNumber());
+        String currentRollNumber = clean(user.getRollNumber());
+        if (currentRollNumber == null
+                ? requestedRollNumber != null
+                : requestedRollNumber == null || !currentRollNumber.equalsIgnoreCase(requestedRollNumber)) {
+            throw new BadRequestException("Roll number cannot be changed after registration");
+        }
         user.setName(request.getName().trim());
-        String rollNumber = clean(request.getRollNumber());
-        user.setRollNumber(rollNumber == null ? null : rollNumber.toUpperCase());
         user.setDateOfBirth(request.getDateOfBirth());
         user.setMobileNumber(clean(request.getMobileNumber()));
         user.setGender(request.getGender());

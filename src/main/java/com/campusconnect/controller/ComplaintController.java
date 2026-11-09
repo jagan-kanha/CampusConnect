@@ -2,12 +2,15 @@ package com.campusconnect.controller;
 
 import com.campusconnect.dto.ComplaintRequest;
 import com.campusconnect.dto.ComplaintResponse;
+import com.campusconnect.dto.CampusComplaintResponse;
+import com.campusconnect.dto.ComplaintSupportResponse;
 import com.campusconnect.entity.Complaint;
 import com.campusconnect.service.ComplaintService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Pageable;
 
@@ -57,6 +60,36 @@ public class ComplaintController {
         );
     }
 
+    @GetMapping("/campus")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<Page<CampusComplaintResponse>> getCampusComplaints(
+            Authentication authentication,
+            Pageable pageable) {
+        return ResponseEntity.ok(
+                complaintService.getCampusComplaints(authentication.getName(), pageable)
+        );
+    }
+
+    @PostMapping("/{id}/support")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<ComplaintSupportResponse> supportComplaint(
+            @PathVariable Long id,
+            Authentication authentication) {
+        return ResponseEntity.ok(
+                complaintService.supportComplaint(id, authentication.getName())
+        );
+    }
+
+    @DeleteMapping("/{id}/support")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<ComplaintSupportResponse> removeSupport(
+            @PathVariable Long id,
+            Authentication authentication) {
+        return ResponseEntity.ok(
+                complaintService.removeSupport(id, authentication.getName())
+        );
+    }
+
     private ComplaintResponse toResponse(Complaint complaint) {
 
         return new ComplaintResponse(
@@ -70,7 +103,8 @@ public class ComplaintController {
                 complaint.getUpdatedAt(),
                 complaint.getUser().getId(),
                 complaint.getUser().getName(),
-                complaint.getUser().getEmail()
+                complaint.getUser().getEmail(),
+                complaintService.getSupportCount(complaint.getId())
         );
     }
 }

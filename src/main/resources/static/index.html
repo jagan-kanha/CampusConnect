@@ -19,6 +19,7 @@
       <nav class="nav-list" aria-label="Main navigation">
         <a class="nav-link active" id="overview-link" href="#home"><span class="nav-icon">⌂</span> Overview</a>
         <a class="nav-link" id="complaints-link" href="#my-complaints"><span class="nav-icon">▤</span> <span id="nav-label">My complaints</span> <span class="nav-count" id="nav-count">0</span></a>
+        <a class="nav-link hidden" id="campus-board-link" href="#campus-board"><span class="nav-icon">◎</span> Campus board <span class="nav-count" id="campus-board-count">0</span></a>
       </nav>
       <div class="sidebar-bottom">
         <div class="help-card"><div class="help-spark">✳</div><strong>A better campus<br>starts with a voice.</strong><p>Every report helps us make things better for everyone.</p></div>
@@ -46,17 +47,26 @@
           <div class="welcome-row"><div><div class="eyebrow"><span class="eyebrow-dot"></span> <span id="portal-label">STUDENT PORTAL</span></div><h1><span id="greeting">Welcome back</span>, <span id="welcome-name">there</span><span class="wave">✳</span></h1><p class="welcome-subtitle" id="welcome-subtitle">Here’s what’s happening around your campus.</p></div><button class="button button-primary" id="new-complaint-button"><span class="plus">＋</span> New complaint</button></div>
           <div class="stats-grid"><article class="stat-card"><div class="stat-top"><span class="stat-label" id="total-label">TOTAL REPORTED</span><span class="stat-icon icon-lilac">▤</span></div><div class="stat-value" id="total-count">—</div><div class="stat-caption" id="total-caption">Your voice on campus</div><div class="stat-decoration decor-lilac">↗</div></article><article class="stat-card"><div class="stat-top"><span class="stat-label">IN PROGRESS</span><span class="stat-icon icon-amber">◷</span></div><div class="stat-value" id="progress-count">—</div><div class="stat-caption">On this page</div><div class="stat-decoration decor-amber">···</div></article><article class="stat-card"><div class="stat-top"><span class="stat-label">RESOLVED</span><span class="stat-icon icon-mint">✓</span></div><div class="stat-value" id="resolved-count">—</div><div class="stat-caption">On this page</div><div class="stat-decoration decor-mint">✳</div></article></div>
           <section class="content-card student-profile-card" id="student-profile-card">
-            <div class="card-heading"><div><div class="section-kicker">YOUR ACCOUNT</div><h2>Student profile</h2></div><span class="profile-total"><strong id="profile-total-complaints">—</strong><span>Total complaints</span></span></div>
-            <form id="profile-form" class="profile-form">
+            <div class="card-heading profile-card-heading"><div><div class="section-kicker">YOUR ACCOUNT</div><h2>Student profile</h2></div><div class="profile-heading-actions"><button class="button button-quiet profile-edit-button" id="edit-profile-button" type="button">Edit profile</button><span class="profile-total"><strong id="profile-total-complaints">—</strong><span>Total complaints</span></span></div></div>
+            <div class="profile-summary" id="profile-summary">
+              <div class="profile-detail"><span>Full name</span><strong id="summary-profile-name">—</strong></div>
+              <div class="profile-detail"><span>College email ID</span><strong id="summary-profile-email">—</strong></div>
+              <div class="profile-detail"><span>Roll number</span><strong id="summary-profile-roll">—</strong></div>
+              <div class="profile-detail"><span>Date of birth</span><strong id="summary-profile-dob">—</strong></div>
+              <div class="profile-detail"><span>Mobile number</span><strong id="summary-profile-mobile">—</strong></div>
+              <div class="profile-detail"><span>Gender</span><strong id="summary-profile-gender">—</strong></div>
+              <div class="profile-detail"><span>Current hostel</span><strong id="summary-profile-hostel">—</strong></div>
+              <div class="profile-academic-tag" id="student-academic-tag"></div>
+            </div>
+            <form id="profile-form" class="profile-form hidden">
               <label class="field">Full name<input id="profile-edit-name" name="name" maxlength="100" required></label>
               <label class="field">College email ID<input id="profile-email" type="email" readonly></label>
-              <label class="field">Roll number<input id="profile-roll-number" name="rollNumber" maxlength="9" pattern="[0-9]{3}[A-Za-z]{2}[0-9]{4}" title="Use 3 digits, 2 letters, and 4 digits (example: 124BT0021)" placeholder="124BT0021"></label>
+              <label class="field">Roll number<input id="profile-roll-number" name="rollNumber" maxlength="9" pattern="[0-9]{3}[A-Za-z]{2}[0-9]{4}" title="Roll number cannot be changed after registration" placeholder="124BT0021" readonly></label>
               <label class="field">Date of birth<input id="profile-dob" name="dateOfBirth" type="date"></label>
               <label class="field">Mobile number<input id="profile-mobile" name="mobileNumber" type="tel" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" title="Enter exactly 10 digits" placeholder="10-digit mobile number"></label>
               <label class="field">Gender<select id="profile-gender" name="gender" required><option value="">Select gender</option><option value="MALE">Male</option><option value="FEMALE">Female</option></select></label>
               <label class="field">Current hostel<select id="profile-hostel" name="hostel" required disabled><option value="">Choose gender first</option></select></label>
-              <div class="profile-academic-tag" id="student-academic-tag"></div>
-              <div class="profile-actions"><p id="profile-message" class="form-message" role="status" aria-live="polite"></p><button class="button button-primary" id="profile-save" type="submit">Save profile</button></div>
+              <div class="profile-actions"><p id="profile-message" class="form-message" role="status" aria-live="polite"></p><div class="profile-edit-actions"><button class="button button-quiet" id="cancel-profile-edit" type="button">Cancel</button><button class="button button-primary" id="profile-save" type="submit">Save profile</button></div></div>
             </form>
           </section>
           </section>
