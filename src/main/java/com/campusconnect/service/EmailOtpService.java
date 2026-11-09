@@ -45,14 +45,13 @@ public class EmailOtpService {
             AuthOtpChallengeRepository challengeRepository,
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
-            RestClient.Builder restClientBuilder,
             @Value("${BREVO_API_KEY:}") String brevoApiKey,
             @Value("${BREVO_SENDER_EMAIL:}") String senderEmail,
             @Value("${jwt.secret}") String jwtSecret) {
         this.challengeRepository = challengeRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.restClient = restClientBuilder.build();
+        this.restClient = RestClient.create();
         this.brevoApiKey = brevoApiKey;
         this.senderEmail = senderEmail;
         this.jwtSecret = jwtSecret;
