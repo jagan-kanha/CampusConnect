@@ -259,6 +259,12 @@ The application runs on:
 
 http://localhost:8080
 
+### Free deployment (Render + TiDB Cloud Starter)
+
+The application can be deployed as a Docker web service on Render. The repository includes a `Dockerfile`; select the `main` branch and the Free plan when creating a Render Web Service. Render's Free web services sleep after 15 minutes without traffic and may take about a minute to wake. Render also documents JVM applications as memory-intensive, so the included Docker start command caps the Java heap for the 512 MB Free instance; startup may still need troubleshooting if it exceeds the plan's limits.
+
+For a no-cost MySQL-compatible database, create a TiDB Cloud Starter instance and keep its monthly spending limit at $0. The free allowance is limited; service may reject new connections when the quota is reached. Use TiDB's generated JDBC connection details and TLS setting. In Render's Environment settings, add `DB_URL` (the secure `jdbc:mysql://...` connection URL), `DB_USERNAME`, `DB_PASSWORD`, and `JWT_SECRET` (a long random secret). Keep these values out of Git. The application also reads `PORT` from Render. `DB_URL` defaults to local MySQL only for local development; `DB_USERNAME` defaults to `root`.
+
 ### CampusConnect UI
 
 The frontend uses plain HTML, CSS, and JavaScript; Spring Boot serves it from `src/main/resources/static`. There is no separate frontend build step. Open `http://localhost:8080` after the backend starts, then create a student account or sign in. The first UI includes registration, login, a student overview, complaint creation, and the student's complaint list.
