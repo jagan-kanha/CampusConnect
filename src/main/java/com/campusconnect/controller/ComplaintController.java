@@ -68,7 +68,9 @@ public class ComplaintController {
                 complaint.getStatus(),
                 complaint.getCreatedAt(),
                 complaint.getUpdatedAt(),
-                complaint.getUser().getId()
+                complaint.getUser().getId(),
+                complaint.getUser().getName(),
+                complaint.getUser().getEmail()
         );
     }
 }

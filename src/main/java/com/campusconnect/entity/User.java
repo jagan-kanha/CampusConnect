@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.time.LocalDate;
 
 
 
@@ -19,6 +20,17 @@ public class User {
     private Long id;
 
     private String name;
+
+    private String rollNumber;
+
+    private LocalDate dateOfBirth;
+
+    private String mobileNumber;
+
+    @Enumerated(EnumType.STRING)
+    private StudentGender gender;
+
+    private String hostel;
 
     @Column(unique = true, nullable = false)
     private String email;

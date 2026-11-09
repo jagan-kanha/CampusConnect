@@ -21,4 +21,6 @@ public class ComplaintResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Long userId;
+    private String studentName;
+    private String studentEmail;
 }

@@ -66,7 +66,8 @@ public class SecurityConfig {
                                 "/styles.css",
                                 "/app.js",
                                 "/favicon.ico",
-                                "/api/auth/register",
+                                "/api/auth/register/**",
+                                "/api/auth/password-reset/**",
                                 "/api/auth/login"
                         ).permitAll()
                         .anyRequest().authenticated()

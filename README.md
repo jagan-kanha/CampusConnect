@@ -100,7 +100,7 @@ src/main/java/com/campusconnect
 
  # Authentication & Authorization
 
-CampusConnect uses JWT-based authentication with Spring Security.
+CampusConnect uses JWT-based authentication with Spring Security. New student accounts are created only after their email OTP is verified. Password recovery also uses a one-time code sent to the registered email address.
 
 # Authentication Flow
 
@@ -191,8 +191,12 @@ GET /api/admin/complaints?status=OPEN&page=0&size=5&sort=createdAt,desc
 API Endpoints
 Authentication
 Method	Endpoint	Description
-POST	/api/auth/register	Register a new user
+POST	/api/auth/register/request-otp	Begin student registration and send an email code
+POST	/api/auth/register/verify-otp	Verify email and create the student account
+POST	/api/auth/register/resend-otp	Resend the registration code
 POST	/api/auth/login	Authenticate user and receive JWT
+POST	/api/auth/password-reset/request-otp	Send a password reset code to the registered email
+POST	/api/auth/password-reset/confirm	Verify the code and save a new password
 Student
 Method	Endpoint	Description
 POST	/api/complaints	Create a complaint
@@ -263,7 +267,7 @@ http://localhost:8080
 
 The application can be deployed as a Docker web service on Render. The repository includes a `Dockerfile`; select the `main` branch and the Free plan when creating a Render Web Service. Render's Free web services sleep after 15 minutes without traffic and may take about a minute to wake. Render also documents JVM applications as memory-intensive, so the included Docker start command caps the Java heap for the 512 MB Free instance; startup may still need troubleshooting if it exceeds the plan's limits.
 
-For a no-cost MySQL-compatible database, create a TiDB Cloud Starter instance and keep its monthly spending limit at $0. The free allowance is limited; service may reject new connections when the quota is reached. Use TiDB's generated JDBC connection details and TLS setting. In Render's Environment settings, add `DB_URL` (the secure `jdbc:mysql://...` connection URL), `DB_USERNAME`, `DB_PASSWORD`, and `JWT_SECRET` (a long random secret). Keep these values out of Git. The application also reads `PORT` from Render. `DB_URL` defaults to local MySQL only for local development; `DB_USERNAME` defaults to `root`.
+For a no-cost MySQL-compatible database, create a TiDB Cloud Starter instance and keep its monthly spending limit at $0. The free allowance is limited; service may reject new connections when the quota is reached. Use TiDB's generated JDBC connection details and TLS setting. In Render's Environment settings, add `DB_URL` (the secure `jdbc:mysql://...` connection URL), `DB_USERNAME`, `DB_PASSWORD`, and `JWT_SECRET` (a long random secret). For email OTP, create a Brevo account, verify a sender email, and add `BREVO_API_KEY` and `BREVO_SENDER_EMAIL`. The integration uses Brevo's HTTPS API because Render Free web services block outbound SMTP. Keep all keys and passwords out of Git. The application also reads `PORT` from Render. `DB_URL` defaults to local MySQL only for local development; `DB_USERNAME` defaults to `root`.
 
 ### CampusConnect UI
 
@@ -271,7 +275,7 @@ The frontend uses plain HTML, CSS, and JavaScript; Spring Boot serves it from `s
 
 The browser calls the existing `/api/auth/*` and `/api/complaints*` endpoints with `fetch`. After login, it sends the JWT as an `Authorization: Bearer ...` header for protected requests. Static UI files and the authentication endpoints are public in `SecurityConfig`; protected API requests still pass through the JWT filter.
 
-After signing in, the UI uses the `role` returned by `/api/auth/login` to show the student dashboard or the admin complaint queue. Students and admins can view the conversation; both can add comments, and admins can change complaint status. Admin accounts must have the `ADMIN` role in the `users` table; public registration always creates `STUDENT` accounts. Passwords are BCrypt hashes, so sign in with the original password, not the stored hash.
+After signing in, the UI uses the `role` returned by `/api/auth/login` to show the student dashboard or the admin complaint queue. Students and admins can view the conversation; both can add comments, and admins can change complaint status. Admin accounts must have the `ADMIN` role in the `users` table; verified public registration always creates `STUDENT` accounts. Passwords are BCrypt hashes, so sign in with the original password, not the stored hash. Email OTPs expire after 10 minutes, permit up to five verification attempts, and are rate-limited for resend requests.
 
 The complaint list uses Spring Data's page response for previous/next navigation and page size. Both roles can sort by creation date, update date, or title. Admins can combine status, priority, and category filters; all selected filters are applied together.
 
